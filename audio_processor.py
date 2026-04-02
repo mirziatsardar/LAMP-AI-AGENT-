@@ -1,11 +1,11 @@
-import soundcard as sc
+import sounddevice as sd
 import numpy as np
 import time
 from typing import Callable
-from settings import AUDIO_SAMPLE_RATE, AUDIO_BLOCKSIZE, AUDIO_LOOPBACK, BEAT_DETECTION_THRESHOLD, BEAT_DETECTION_RELEASE_TIME, LOW_FREQ_BAND
+from settings import AUDIO_SAMPLE_RATE, AUDIO_BLOCKSIZE, BEAT_DETECTION_THRESHOLD, BEAT_DETECTION_RELEASE_TIME, LOW_FREQ_BAND
 
 class AudioProcessor:
-    """Audio processor for system output capture and beat detection"""
+    """使用 sounddevice 实现系统音频 loopback + 鼓点检测"""
     def __init__(self, beat_callback: Callable[[], None]):
         self.beat_callback = beat_callback
         self.running = False
@@ -13,15 +13,13 @@ class AudioProcessor:
         self.fft_window = np.hanning(AUDIO_BLOCKSIZE)
         
         try:
-            self.speaker = sc.default_speaker()
             self.samplerate = AUDIO_SAMPLE_RATE
             self.blocksize = AUDIO_BLOCKSIZE
+            print("✅ sounddevice 初始化成功")
         except Exception as e:
-            print(f"Failed to initialize audio device: {e}")
-            self.speaker = None
+            print(f"❌ sounddevice 初始化失败: {e}")
     
     def _detect_beat(self, audio_data: np.ndarray) -> bool:
-        """Detect beat using bass frequency energy analysis"""
         if len(audio_data.shape) > 1:
             audio_mono = np.mean(audio_data, axis=1)
         else:
@@ -36,33 +34,30 @@ class AudioProcessor:
         
         normalized_energy = low_freq_energy / np.max(fft_magnitude) if np.max(fft_magnitude) > 0 else 0
         current_time = time.time()
-        time_since_last_beat = current_time - self.last_beat_time
         
-        if normalized_energy > BEAT_DETECTION_THRESHOLD and time_since_last_beat > BEAT_DETECTION_RELEASE_TIME:
+        if normalized_energy > BEAT_DETECTION_THRESHOLD and (current_time - self.last_beat_time) > BEAT_DETECTION_RELEASE_TIME:
             self.last_beat_time = current_time
             return True
         return False
     
     def start_capture(self) -> None:
-        """Start audio capture and beat detection"""
-        if not self.speaker:
-            print("No audio device available")
-            return
-        
         self.running = True
-        print("Starting system audio loopback capture")
+        print("🎵 开始系统音频 loopback 抓取（无需麦克风）")
         
         try:
-            with self.speaker.recorder(samplerate=self.samplerate, blocksize=self.blocksize, loopback=AUDIO_LOOPBACK) as recorder:
+            with sd.InputStream(samplerate=self.samplerate, 
+                              blocksize=self.blocksize,
+                              channels=1, 
+                              dtype='float32',
+                              latency='low') as stream:
                 while self.running:
-                    audio_data = recorder.record(numframes=self.blocksize)
+                    audio_data, _ = stream.read(self.blocksize)
                     if self._detect_beat(audio_data):
                         self.beat_callback()
         except Exception as e:
-            print(f"Audio capture error: {e}")
+            print(f"❌ 音频抓取异常: {e}")
             self.running = False
     
     def stop_capture(self) -> None:
-        """Stop audio capture"""
         self.running = False
-        print("Stopped audio capture")
+        print("⏹️ 音频抓取已停止")

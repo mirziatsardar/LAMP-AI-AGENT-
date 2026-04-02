@@ -22,14 +22,27 @@ jobs:
         run: |
           pip install -r requirements.txt pyinstaller
 
+      - name: 手动复制 soundcard 完整包（暴力解决 DLL 丢失）
+        run: |
+          python -c "
+          import soundcard as sc
+          import os, shutil
+          pkg_dir = os.path.dirname(sc.__file__)
+          print('Soundcard installed at:', pkg_dir)
+          if os.path.exists('soundcard_pkg'):
+              shutil.rmtree('soundcard_pkg')
+          shutil.copytree(pkg_dir, 'soundcard_pkg')
+          print('Soundcard package copied to soundcard_pkg')
+          "
+
       - name: 创建 config 文件夹
         run: mkdir -p config
 
-      - name: 使用 spec 文件打包（文件夹版 + 暴力收集）
+      - name: 使用 spec 文件打包（文件夹版）
         run: |
           pyinstaller Lighting_Control_System.spec
 
-      - name: 上传打包后的完整文件夹
+      - name: 上传完整文件夹
         uses: actions/upload-artifact@v4
         with:
           name: Lighting_Control_System_Folder

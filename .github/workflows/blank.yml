@@ -1,0 +1,53 @@
+name: Build Lighting EXE
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt pyinstaller
+
+      - name: Create config directory (避免运行时错误)
+        run: |
+          mkdir -p config
+
+      - name: PyInstaller 打包（单文件 + 强制收集）
+        run: |
+          pyinstaller --onefile --noconsole `
+            --name "Lighting_Control_System" `
+            --hidden-import=soundcard `
+            --hidden-import=pythonosc `
+            --hidden-import=icmplib `
+            --hidden-import=numpy `
+            --collect-all soundcard `
+            --collect-all pythonosc `
+            --collect-all numpy `
+            --add-data "config;config" `
+            --add-data "settings.py;." `
+            --add-data "fixtures.py;." `
+            --add-data "protocols.py;." `
+            --add-data "console_manager.py;." `
+            --add-data "fixture_manager.py;." `
+            --add-data "audio_processor.py;." `
+            main.py
+
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: Lighting_Control_System.exe
+          path: dist/Lighting_Control_System.exe

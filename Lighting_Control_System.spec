@@ -4,7 +4,7 @@ from PyInstaller.utils.hooks import collect_all
 
 block_cipher = None
 
-# 暴力收集 soundcard（最关键！）
+# === 暴力收集 soundcard（关键！）===
 soundcard_data, soundcard_binaries, soundcard_hidden = collect_all('soundcard')
 numpy_data, numpy_binaries, numpy_hidden = collect_all('numpy')
 pythonosc_data, pythonosc_binaries, pythonosc_hidden = collect_all('pythonosc')
@@ -12,13 +12,9 @@ pythonosc_data, pythonosc_binaries, pythonosc_hidden = collect_all('pythonosc')
 a = Analysis(
     ['main.py'],
     pathex=[],
-    binaries=[
-        *soundcard_binaries,
-        *numpy_binaries,
-        *pythonosc_binaries,
-    ],
+    binaries=soundcard_binaries + numpy_binaries + pythonosc_binaries,
     datas=[
-        ('config', 'config'),           # config 文件夹
+        ('config', 'config'),
         ('settings.py', '.'),
         ('fixtures.py', '.'),
         ('protocols.py', '.'),
@@ -30,16 +26,9 @@ a = Analysis(
         *pythonosc_data,
     ],
     hiddenimports=[
-        'soundcard',
-        'soundcard.cffi',
-        'soundcard.soundcard',
-        'numpy',
-        'pythonosc',
-        'pythonosc.udp_client',
-        'pythonosc.dispatcher',
+        'soundcard', 'soundcard.cffi', 'soundcard.soundcard',
+        'numpy', 'pythonosc', 'pythonosc.udp_client',
         'icmplib',
-        'icmplib.exceptions',
-        'icmplib.models',
     ],
     hookspath=[],
     hooksconfig={},
@@ -62,7 +51,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,          # 保留命令行输出
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
@@ -78,5 +67,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='Lighting_Control_System',   # 最终文件夹名字
+    name='Lighting_Control_System',
 )

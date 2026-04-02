@@ -4,16 +4,17 @@ from PyInstaller.utils.hooks import collect_all
 
 block_cipher = None
 
+# 自动收集复杂库的所有依赖和数据点
 sounddevice_data, sounddevice_binaries, sounddevice_hidden = collect_all('sounddevice')
 numpy_data, numpy_binaries, numpy_hidden = collect_all('numpy')
 pythonosc_data, pythonosc_binaries, pythonosc_hidden = collect_all('pythonosc')
 
 a = Analysis(
-    ['main.py'],
+    ['main.py'],  # 确认这是你的主入口
     pathex=[],
     binaries=sounddevice_binaries + numpy_binaries + pythonosc_binaries,
     datas=[
-        ('config', 'config'),
+        ('config', 'config'), # 确保你的仓库里有这个文件夹
         ('settings.py', '.'),
         ('fixtures.py', '.'),
         ('protocols.py', '.'),
@@ -46,21 +47,24 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,    # 把 binaries 塞进 exe
-    a.zipfiles,    # 把 zipfiles 塞进 exe
-    a.datas,       # 把 datas 塞进 exe
+    a.binaries,       # <--- 核心修改：将二进制库塞进 EXE
+    a.zipfiles,      # <--- 核心修改：将压缩包塞进 EXE
+    a.datas,         # <--- 核心修改：将数据文件塞进 EXE
     [],
-    name='Lighting_Control_System',
+    name='Lighting_Control_System', # 生成的文件名
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=True,        # 使用 UPX 压缩体积（如果环境中没有 UPX 会自动跳过）
     upx_exclude=[],
-    runtime_tmpdir=None,
-    console=True,
+    runtime_tmpdir=None, # 运行时的临时解压目录
+    console=True,    # 保持黑窗口开启，方便看报错和菜单
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
 )
+
+# 注意：单文件模式下不需要使用 COLLECT 模块，所以下面这行删掉或注释掉
+# coll = COLLECT(...)

@@ -1,29 +1,45 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
+from PyInstaller.utils.hooks import collect_all
 
 block_cipher = None
 
+# 暴力收集 soundcard（最关键！）
+soundcard_data, soundcard_binaries, soundcard_hidden = collect_all('soundcard')
+numpy_data, numpy_binaries, numpy_hidden = collect_all('numpy')
+pythonosc_data, pythonosc_binaries, pythonosc_hidden = collect_all('pythonosc')
+
 a = Analysis(
-    ['main.py'],                    # 主入口文件
+    ['main.py'],
     pathex=[],
-    binaries=[],
+    binaries=[
+        *soundcard_binaries,
+        *numpy_binaries,
+        *pythonosc_binaries,
+    ],
     datas=[
-        ('config', 'config'),                    # 打包整个 config 文件夹
+        ('config', 'config'),           # config 文件夹
         ('settings.py', '.'),
         ('fixtures.py', '.'),
         ('protocols.py', '.'),
         ('console_manager.py', '.'),
         ('fixture_manager.py', '.'),
         ('audio_processor.py', '.'),
+        *soundcard_data,
+        *numpy_data,
+        *pythonosc_data,
     ],
     hiddenimports=[
         'soundcard',
         'soundcard.cffi',
+        'soundcard.soundcard',
         'numpy',
         'pythonosc',
-        'icmplib',
         'pythonosc.udp_client',
         'pythonosc.dispatcher',
+        'icmplib',
+        'icmplib.exceptions',
+        'icmplib.models',
     ],
     hookspath=[],
     hooksconfig={},
@@ -46,7 +62,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,                    # 命令行工具必须 True（保留打印信息）
+    console=True,          # 保留命令行输出
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

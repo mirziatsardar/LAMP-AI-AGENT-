@@ -1,4 +1,4 @@
-soundcard>=0.4.2
+sounddevice>=0.4.6
 numpy>=1.24.0
 python-osc>=1.8.3
 icmplib>=3.0

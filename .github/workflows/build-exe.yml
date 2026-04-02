@@ -1,15 +1,14 @@
-name: Build Lighting Folder
+name: Build Lighting Single EXE
 
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
+    
     steps:
       - uses: actions/checkout@v4
 
@@ -21,16 +20,17 @@ jobs:
       - name: 安装依赖
         run: |
           pip install -r requirements.txt
+          pip install pyinstaller # 确保安装了打包工具
 
-      - name: 创建 config 文件夹
-        run: mkdir -p config
+      - name: 确保 config 文件夹存在
+        run: if not exist config mkdir config
 
-      - name: 使用 spec 文件打包（文件夹版）
+      - name: 执行单文件打包
         run: |
           pyinstaller Lighting_Control_System.spec
 
-      - name: 上传完整文件夹
+      - name: 上传成品 EXE
         uses: actions/upload-artifact@v4
         with:
-          name: Lighting_Control_System_Folder
-          path: dist/Lighting_Control_System
+          name: Lighting_System_Standalone
+          path: dist/*.exe # 自动抓取生成的那唯一一个大 EXE

@@ -4,15 +4,14 @@ from PyInstaller.utils.hooks import collect_all
 
 block_cipher = None
 
-# 暴力收集
-soundcard_data, soundcard_binaries, soundcard_hidden = collect_all('soundcard')
+sounddevice_data, sounddevice_binaries, sounddevice_hidden = collect_all('sounddevice')
 numpy_data, numpy_binaries, numpy_hidden = collect_all('numpy')
 pythonosc_data, pythonosc_binaries, pythonosc_hidden = collect_all('pythonosc')
 
 a = Analysis(
     ['main.py'],
     pathex=[],
-    binaries=soundcard_binaries + numpy_binaries + pythonosc_binaries,
+    binaries=sounddevice_binaries + numpy_binaries + pythonosc_binaries,
     datas=[
         ('config', 'config'),
         ('settings.py', '.'),
@@ -21,15 +20,16 @@ a = Analysis(
         ('console_manager.py', '.'),
         ('fixture_manager.py', '.'),
         ('audio_processor.py', '.'),
-        *soundcard_data,
+        *sounddevice_data,
         *numpy_data,
         *pythonosc_data,
-        ('soundcard_pkg', 'soundcard'),     # ←←← 关键！把手动复制的包整个打包
     ],
     hiddenimports=[
-        'soundcard', 'soundcard.cffi', 'soundcard.soundcard',
-        'soundcard._soundcard', 'soundcard.soundcard_cffi',
-        'numpy', 'pythonosc', 'pythonosc.udp_client',
+        'sounddevice',
+        'sounddevice._sounddevice',
+        'numpy',
+        'pythonosc',
+        'pythonosc.udp_client',
         'icmplib',
     ],
     hookspath=[],

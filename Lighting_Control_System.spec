@@ -50,7 +50,3 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 )
-
-# 3. 必须删掉（或注释掉）下面的 COLLECT 部分！！
-# 如果留着 COLLECT，PyInstaller 可能会优先生成文件夹模式
-# coll = COLLECT( ... )

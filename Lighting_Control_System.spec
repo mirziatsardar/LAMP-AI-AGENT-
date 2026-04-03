@@ -1,38 +1,39 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
 import sys
-from PyInstaller.utils.hooks import collect_all
+import numpy
+import sounddevice
+import pythonosc
 
-# 打印一下当前的 Python 路径，确保库安装到了正确的地方
-print(f"DEBUG: Current Python executable: {sys.executable}")
+# 打印调试信息
+print(f"DEBUG: Python Path: {sys.executable}")
+print(f"DEBUG: NumPy Path: {os.path.dirname(numpy.__file__)}")
 
 block_cipher = None
 
-# 1. 收集依赖
-sounddevice_data, sounddevice_binaries, sounddevice_hidden = collect_all('sounddevice')
-numpy_data, numpy_binaries, numpy_hidden = collect_all('numpy')
-pythonosc_data, pythonosc_binaries, pythonosc_hidden = collect_all('pythonosc')
-
-# 监控点：看看收集到了多少二进制文件
-print(f"DEBUG: NumPy binaries count: {len(numpy_binaries)}")
-print(f"DEBUG: SoundDevice binaries count: {len(sounddevice_binaries)}")
+# 直接获取库的安装目录
+numpy_dir = os.path.dirname(numpy.__file__)
+sounddevice_dir = os.path.dirname(sounddevice.__file__)
+pythonosc_dir = os.path.dirname(pythonosc.__file__)
 
 a = Analysis(
     ['main.py'],
     pathex=[],
-    binaries=sounddevice_binaries + numpy_binaries + pythonosc_binaries,
+    binaries=[], # 后面通过 datas 强制带入
     datas=[
         ('config', 'config'),
-        *sounddevice_data,
-        *numpy_data,
-        *pythonosc_data,
+        # 暴力法：直接把整个库文件夹塞进去，确保 DLL 不丢失
+        (numpy_dir, 'numpy'),
+        (sounddevice_dir, 'sounddevice'),
+        (pythonosc_dir, 'pythonosc'),
     ],
     hiddenimports=[
-        'sounddevice', 
-        'numpy', 
-        'pythonosc', 
+        'sounddevice',
+        'numpy',
+        'pythonosc',
         'icmplib',
-        'numpy.core._multiarray_umath' # 强制拉入 NumPy 核心
+        'numpy.core._multiarray_umath',
+        'numpy.libs',
     ],
     hookspath=[],
     hooksconfig={},
@@ -40,9 +41,6 @@ a = Analysis(
     excludes=[],
     noarchive=False,
 )
-
-# 再次监控：Analysis 最终抓到了多少东西
-print(f"DEBUG: Final binaries in Analysis: {len(a.binaries)}")
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 

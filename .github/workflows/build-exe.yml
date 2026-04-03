@@ -28,10 +28,12 @@ jobs:
 
       - name: 执行单文件打包
         run: |
-          pyinstaller Lighting_Control_System.spec
+          # 加上 --clean 确保不使用上次失败的旧缓存
+          pyinstaller --clean Lighting_Control_System.spec
 
       - name: 上传成品 EXE
         uses: actions/upload-artifact@v4
         with:
           name: Lighting_System_Standalone
-          path: dist/*.exe # 自动抓取生成的那唯一一个大 EXE
+          # 这里保持 dist/*.exe 是对的，因为单文件模式下 dist 里只有一个 exe
+          path: dist/*.exe

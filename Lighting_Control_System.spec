@@ -60,6 +60,3 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 )
-
-# 注意：单文件模式下不需要使用 COLLECT 模块，所以下面这行删掉或注释掉
-# coll = COLLECT(...)

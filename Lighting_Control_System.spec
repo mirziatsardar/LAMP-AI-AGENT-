@@ -10,29 +10,29 @@ numpy_data, numpy_binaries, numpy_hidden = collect_all('numpy')
 pythonosc_data, pythonosc_binaries, pythonosc_hidden = collect_all('pythonosc')
 
 a = Analysis(
-    ['main.py'],  # 确认这是你的主入口
+    ['main.py'],
     pathex=[],
     binaries=sounddevice_binaries + numpy_binaries + pythonosc_binaries,
     datas=[
-        ('config', 'config'), # 确保你的仓库里有这个文件夹
-        ('settings.py', '.'),
-        ('fixtures.py', '.'),
-        ('protocols.py', '.'),
-        ('console_manager.py', '.'),
-        ('fixture_manager.py', '.'),
-        ('audio_processor.py', '.'),
+        ('config', 'config'), # 只保留文件夹和非代码资源
         *sounddevice_data,
         *numpy_data,
         *pythonosc_data,
     ],
     hiddenimports=[
         'sounddevice',
-        'sounddevice._sounddevice',
         'numpy',
         'pythonosc',
-        'pythonosc.udp_client',
         'icmplib',
+        'settings',         # 如果报错找不到，手动加在这里
+        'fixtures',
+        'protocols',
+        'console_manager',
+        'fixture_manager',
+        'audio_processor',
     ],
+    # ... 其他保持不变
+)
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

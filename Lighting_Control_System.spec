@@ -8,13 +8,14 @@ block_cipher = None
 sounddevice_data, sounddevice_binaries, sounddevice_hidden = collect_all('sounddevice')
 numpy_data, numpy_binaries, numpy_hidden = collect_all('numpy')
 pythonosc_data, pythonosc_binaries, pythonosc_hidden = collect_all('pythonosc')
+# ... 前面的 collect_all 部分保持不变 ...
 
 a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=sounddevice_binaries + numpy_binaries + pythonosc_binaries,
     datas=[
-        ('config', 'config'), # 只保留文件夹和非代码资源
+        ('config', 'config'),
         *sounddevice_data,
         *numpy_data,
         *pythonosc_data,
@@ -24,15 +25,7 @@ a = Analysis(
         'numpy',
         'pythonosc',
         'icmplib',
-        'settings',         # 如果报错找不到，手动加在这里
-        'fixtures',
-        'protocols',
-        'console_manager',
-        'fixture_manager',
-        'audio_processor',
     ],
-    # ... 其他保持不变
-)
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -41,6 +34,8 @@ a = Analysis(
     optimize=0,
     cipher=block_cipher,
 )
+
+# ... 后面的 PYZ 和 EXE 部分保持不变 ...
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 

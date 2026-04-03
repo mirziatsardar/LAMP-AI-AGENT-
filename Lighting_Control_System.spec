@@ -4,11 +4,10 @@ from PyInstaller.utils.hooks import collect_all
 
 block_cipher = None
 
-# 自动收集复杂库的所有依赖和数据点
+# 1. 收集依赖（这部分保持不变）
 sounddevice_data, sounddevice_binaries, sounddevice_hidden = collect_all('sounddevice')
 numpy_data, numpy_binaries, numpy_hidden = collect_all('numpy')
 pythonosc_data, pythonosc_binaries, pythonosc_hidden = collect_all('pythonosc')
-# ... 前面的 collect_all 部分保持不变 ...
 
 a = Analysis(
     ['main.py'],
@@ -20,43 +19,38 @@ a = Analysis(
         *numpy_data,
         *pythonosc_data,
     ],
-    hiddenimports=[
-        'sounddevice',
-        'numpy',
-        'pythonosc',
-        'icmplib',
-    ],
+    hiddenimports=['sounddevice', 'numpy', 'pythonosc', 'icmplib'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
     noarchive=False,
-    optimize=0,
-    cipher=block_cipher,
 )
-
-# ... 后面的 PYZ 和 EXE 部分保持不变 ...
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
+# 2. 核心修改在这里！把所有东西塞进 EXE
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,       # <--- 核心修改：将二进制库塞进 EXE
-    a.zipfiles,      # <--- 核心修改：将压缩包塞进 EXE
-    a.datas,         # <--- 核心修改：将数据文件塞进 EXE
+    a.binaries,    # <--- 必须有这个，把 DLL 塞进去
+    a.zipfiles,    # <--- 必须有这个，把压缩库塞进去
+    a.datas,       # <--- 必须有这个，把数据塞进去
     [],
-    name='Lighting_Control_System', # 生成的文件名
+    name='Lighting_Control_System',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,        # 使用 UPX 压缩体积（如果环境中没有 UPX 会自动跳过）
-    upx_exclude=[],
-    runtime_tmpdir=None, # 运行时的临时解压目录
-    console=True,    # 保持黑窗口开启，方便看报错和菜单
+    upx=True,      # 如果 GitHub 环境有 UPX 会自动压缩
+    runtime_tmpdir=None,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
 )
+
+# 3. 必须删掉（或注释掉）下面的 COLLECT 部分！！
+# 如果留着 COLLECT，PyInstaller 可能会优先生成文件夹模式
+# coll = COLLECT( ... )

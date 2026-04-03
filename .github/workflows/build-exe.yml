@@ -23,6 +23,7 @@ jobs:
           pip install pyinstaller # 确保安装了打包工具
 
       - name: 确保 config 文件夹存在
+        shell: cmd
         run: if not exist config mkdir config
 
       - name: 执行单文件打包
